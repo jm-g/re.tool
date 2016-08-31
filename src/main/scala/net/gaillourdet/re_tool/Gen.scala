@@ -19,6 +19,7 @@ object Gen {
   case class RSeq(rs: List[Regex]) extends Regex
   case class RAtLeast(n: Int, re: Regex) extends Regex
   case class RNegLookAhead(re: Regex) extends Regex
+  case class RStar(re: Regex) extends Regex
 
   def render(re: Regex): String = re match {
     case RChar(c)          => c.toString
@@ -27,6 +28,7 @@ object Gen {
     case ROr(l,r)          => s"(${render(l)}|${render(r)})"
     case RAtLeast(n, re)   => s"${render(re)}{$n,}"
     case RNegLookAhead(re) => s"(?!${render(re)})"
+    case RStar(re)         => s"(${render(re)})*"
   }
 
   // gte
@@ -41,11 +43,16 @@ object Gen {
 
 
   def wrapDigits(digits: List[Digit], compiler: List[Digit] => Regex): Regex = {
-    RSeq(ROr(atLeastDigits(digits.length + 1), compiler(digits)) :: noDigit :: Nil)
+    RSeq(
+      ROr(
+        RSeq(RStar(anyDigit) :: nonZero :: atLeastDigits(digits.length) :: Nil),
+        RSeq(RStar(zero) :: compiler(digits) :: Nil)
+      ) :: noDigit :: Nil)
   }
 
 
   def gteDigits(digits: List[Digit]): Regex = digits match {
+    case Nil => ???
     case d :: Nil => gteDigit(d)
     case d :: ds => gtDigit(d) match {
       case Some(gtRegex) =>
@@ -56,6 +63,7 @@ object Gen {
   }
 
   def gtDigits(digits: List[Digit]): Regex = digits match {
+    case Nil => ???
     case d :: Nil => gtDigit(d) match {
       case Some(re) => re
       case None => never
@@ -68,6 +76,8 @@ object Gen {
     }
   }
 
+  def zero: Regex = RChar('0')
+  def nonZero: Regex = RClass(Range.inclusive(1, 9).map(Digit andThen fromDigit).toList)
   def anyDigit: Regex = RClass(Range.inclusive(0, 9).map(Digit andThen fromDigit).toList)
 
   def atLeastDigits(len: Int): Regex = RAtLeast(len,anyDigit)

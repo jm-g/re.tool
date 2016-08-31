@@ -11,19 +11,17 @@ class GenSpecification extends Properties("Gen") {
   import Prop.{BooleanOperators, forAll}
   import SpecHelper._
 
-  property("greaterThan matches correctly") = forAll { (boundary: Int, testValue: Int, leadingZeros: Int) =>
-    (boundary >= 0 && testValue >= 0 && leadingZeros >= 0) ==> {
+  property("greaterThan matches correctly") =
+    forAll (posInt, posInt, posInt) { (boundary, testValue, leadingZeros) =>
       val zeros = List.fill(Math.log10(leadingZeros).toInt)('0').mkString
       (zeros + testValue.toString).matches(greaterThan(boundary)) == (testValue > boundary)
     }
-  }
 
-  property("greaterThanOrEqual matches correctly") = forAll { (boundary: Int, testValue: Int, leadingZeros: Int) =>
-    (boundary >= 0 && testValue >= 0 && leadingZeros >= 0) ==> {
+  property("greaterThanOrEqual matches correctly") =
+    forAll(posInt, posInt, posInt) { (boundary, testValue, leadingZeros) =>
       val zeros = List.fill(Math.log10(leadingZeros).toInt)('0').mkString
-      (zeros + testValue.toString).matches(greaterThan(boundary)) == (testValue >= boundary)
+      (zeros + testValue.toString).matches(greaterThanOrEqual(boundary)) == (testValue >= boundary)
     }
-  }
 
   property("fromDigit is a string of length 1") = forAll(digitGen) { (d) =>
     fromDigit(digit(d)).toString.length == 1
