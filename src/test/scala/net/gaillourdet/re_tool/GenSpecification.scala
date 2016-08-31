@@ -11,9 +11,14 @@ class GenSpecification extends Properties("Gen") {
   import Prop.{BooleanOperators, forAll}
   import SpecHelper._
 
-  property("matches correctly") = forAll { (boundary: Int, testValue: Int) =>
+  property("greaterThan matches correctly") = forAll { (boundary: Int, testValue: Int) =>
     (boundary >= 0 && testValue >= 0) ==>
-      (testValue.toString.matches(largerThan(boundary)) == (testValue > boundary))
+      (testValue.toString.matches(greaterThan(boundary)) == (testValue > boundary))
+  }
+
+  property("greaterThanOrEqual matches correctly") = forAll { (boundary: Int, testValue: Int) =>
+    (boundary >= 0 && testValue >= 0) ==>
+      (testValue.toString.matches(greaterThanOrEqual(boundary)) == (testValue >= boundary))
   }
 
   property("fromDigit is a string of length 1") = forAll(digitGen) { (d) =>
