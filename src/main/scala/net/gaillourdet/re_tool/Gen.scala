@@ -4,8 +4,8 @@ case class Digit(value: Int)
 
 object Gen {
 
-  def gt: Int => String = seperateDigits _ andThen gtDigits andThen render
-  def gte: Int => String = seperateDigits _ andThen gteDigits andThen render
+  def gt: Int => String = seperateDigits _ andThen (wrapDigits(_, gtDigits)) andThen render
+  def gte: Int => String = seperateDigits _ andThen (wrapDigits(_, gteDigits)) andThen render
 
   def greaterThan: Int => String = gt
   def greaterThanOrEqual: Int => String = gte
@@ -37,6 +37,11 @@ object Gen {
   def gtDigit(d: Digit): Option[Regex] = d match {
     case Digit(d) if d < 9 => Some(RClass(Range.inclusive(d + 1, 9).map(Digit.apply _ andThen fromDigit).toList))
     case _                 => None
+  }
+
+
+  def wrapDigits(digits: List[Digit], compiler: List[Digit] => Regex): Regex = {
+    RSeq(ROr(atLeastDigits(digits.length + 1), compiler(digits)) :: noDigit :: Nil)
   }
 
 
