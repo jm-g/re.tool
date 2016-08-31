@@ -4,6 +4,8 @@ case class Digit(value: Int)
 
 object Gen {
 
+  def undefined: Nothing = throw new IllegalStateException("never happens")
+
   def gt: Int => String = seperateDigits _ andThen (wrapDigits(_, gtDigits)) andThen render
   def gte: Int => String = seperateDigits _ andThen (wrapDigits(_, gteDigits)) andThen render
 
@@ -26,18 +28,17 @@ object Gen {
     case RClass(cs)        => s"[${cs.mkString}]"
     case RSeq(res)         => res.map(render).mkString
     case ROr(l,r)          => s"(${render(l)}|${render(r)})"
-    case RAtLeast(n, re)   => s"${render(re)}{$n,}"
-    case RNegLookAhead(re) => s"(?!${render(re)})"
-    case RStar(re)         => s"(${render(re)})*"
+    case RAtLeast(n, r)   => s"${render(r)}{$n,}"
+    case RNegLookAhead(r) => s"(?!${render(r)})"
+    case RStar(r)         => s"(${render(r)})*"
   }
 
-  // gte
   def gteDigit(d: Digit): Regex = d match {
-    case Digit(d) => RClass(Range.inclusive(d, 9).map(Digit.apply _ andThen fromDigit).toList)
+    case Digit(x) => RClass(Range.inclusive(x, 9).map(Digit.apply _ andThen fromDigit).toList)
   }
 
   def gtDigit(d: Digit): Option[Regex] = d match {
-    case Digit(d) if d < 9 => Some(RClass(Range.inclusive(d + 1, 9).map(Digit.apply _ andThen fromDigit).toList))
+    case Digit(x) if x < 9 => Some(RClass(Range.inclusive(x + 1, 9).map(Digit.apply _ andThen fromDigit).toList))
     case _                 => None
   }
 
@@ -52,7 +53,7 @@ object Gen {
 
 
   def gteDigits(digits: List[Digit]): Regex = digits match {
-    case Nil => ???
+    case Nil => undefined
     case d :: Nil => gteDigit(d)
     case d :: ds => gtDigit(d) match {
       case Some(gtRegex) =>
@@ -63,7 +64,7 @@ object Gen {
   }
 
   def gtDigits(digits: List[Digit]): Regex = digits match {
-    case Nil => ???
+    case Nil => undefined
     case d :: Nil => gtDigit(d) match {
       case Some(re) => re
       case None => never
