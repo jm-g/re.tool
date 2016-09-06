@@ -1,3 +1,6 @@
+enablePlugins(JavaAppPackaging)
+enablePlugins(UniversalPlugin)
+
 name := "re.tool"
 organization := "net.gaillourdet"
 
